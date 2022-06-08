@@ -23,6 +23,9 @@ export class User {
   @Prop()
   roles: string[];
 
+  @Prop({ default: false })
+  isAdmin: boolean;
+
   @Prop()
   createdAt: Date;
 

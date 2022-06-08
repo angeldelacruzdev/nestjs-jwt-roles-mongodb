@@ -92,6 +92,7 @@ export class AuthService {
           sub: user._id,
           email,
           roles: user.roles,
+          isAdmin: user.isAdmin,
         },
         {
           secret: 'at-secret',
@@ -103,6 +104,7 @@ export class AuthService {
           sub: user._id,
           email,
           roles: user.roles,
+          isAdmin: user.isAdmin,
         },
         {
           secret: 'rt-secret',
