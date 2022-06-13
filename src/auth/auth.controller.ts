@@ -15,11 +15,10 @@ import { Tokens } from './../types';
 import { RtGuard } from './../common/guards';
 import {
   GetCurrentUserId,
-  GetCurrentUser,
   Public,
+  GetCurrentRtCookies,
 } from './../common/decorators';
 import { Response } from 'express';
-import { GetCurrentRtCookies } from 'src/common/decorators/get-current-tr-cookies';
 
 @Controller('auth')
 export class AuthController {
@@ -31,8 +30,18 @@ export class AuthController {
   async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
     const token = await this.authService.login(dto);
 
-    res.cookie('LOGIN_INFO', token.access_token, { httpOnly: true });
-    res.cookie('RT', token.refresh_token, { httpOnly: true });
+    res.cookie('LOGIN_INFO', token.access_token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+      path: '/',
+      sameSite: 'strict',
+    });
+    res.cookie('RT', token.refresh_token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      path: '/',
+      sameSite: 'strict',
+    });
     res.send({
       success: true,
     });
@@ -61,12 +70,21 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const token = await this.authService.refreshTokens(userId, refreshToken);
-    
+
     res.clearCookie('RT');
     res.clearCookie('LOGIN_INFO');
-    res.cookie('LOGIN_INFO', token.access_token, { httpOnly: true });
-    res.cookie('RT', token.refresh_token, { httpOnly: true });
-
+    res.cookie('LOGIN_INFO', token.access_token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+      path: '/',
+      sameSite: 'strict',
+    });
+    res.cookie('RT', token.refresh_token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      path: '/',
+      sameSite: 'strict',
+    });
     res.send({
       success: true,
     });
