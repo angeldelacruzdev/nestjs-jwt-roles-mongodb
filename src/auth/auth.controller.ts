@@ -19,6 +19,7 @@ import {
   Public,
 } from './../common/decorators';
 import { Response } from 'express';
+import { GetCurrentRtCookies } from 'src/common/decorators/get-current-tr-cookies';
 
 @Controller('auth')
 export class AuthController {
@@ -27,8 +28,14 @@ export class AuthController {
   @Public()
   @Post('/login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: AuthDto) {
-    return await this.authService.login(dto);
+  async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
+    const token = await this.authService.login(dto);
+
+    res.cookie('LOGIN_INFO', token.access_token, { httpOnly: true });
+    res.cookie('RT', token.refresh_token, { httpOnly: true });
+    res.send({
+      success: true,
+    });
   }
 
   @Public()
@@ -46,13 +53,23 @@ export class AuthController {
 
   @Public()
   @UseGuards(RtGuard)
-  @Post('/refresh')
+  @Get('/refresh')
   @HttpCode(HttpStatus.OK)
   async refreshTokens(
-    @GetCurrentUser('refreshToken') refreshToken: string,
+    @GetCurrentRtCookies() refreshToken: string,
     @GetCurrentUserId() userId: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return await this.authService.refreshTokens(userId, refreshToken);
+    const token = await this.authService.refreshTokens(userId, refreshToken);
+    
+    res.clearCookie('RT');
+    res.clearCookie('LOGIN_INFO');
+    res.cookie('LOGIN_INFO', token.access_token, { httpOnly: true });
+    res.cookie('RT', token.refresh_token, { httpOnly: true });
+
+    res.send({
+      success: true,
+    });
   }
 
   @Get('/profile')

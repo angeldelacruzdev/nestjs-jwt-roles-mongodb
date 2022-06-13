@@ -22,11 +22,12 @@ export class AuthService {
 
     if (!passwordMatches) throw new ForbiddenException('Access Denied.');
 
-    const tokens = await this.getTokens(user, user.email);
+    const tokens: Tokens = await this.getTokens(user, user.email);
 
     const rtHash = await this.hashPassword(tokens.refresh_token);
 
     await this.userService.updateOne(user._id, { hashdRt: rtHash });
+
     return tokens;
   }
 
@@ -37,6 +38,7 @@ export class AuthService {
 
   //Refrescar sesión
   async refreshTokens(userId: string, rt: string) {
+
     const user = await this.userService.findById(userId);
 
     if (!user || !user.hashdRt) throw new ForbiddenException('Access Denied.');
